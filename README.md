@@ -12,12 +12,7 @@ Repostorio de Árbol AVL | Examen Final de Estructuras de Datos | UD 2026 - I
 | **Secuencia asignada** | 44, 24, 74, 14, 34, 64, 84, 32, 33, 31, 30, 35 |
 
 ## 🚀 Instrucciones de ejecución
-
-**Opción 1 — GitHub Pages (recomendado):**
-Abrir directamente en el navegador:
-[Ver aplicación en vivo](https://TU-USUARIO.github.io/arbol-avl-estructuras-datos/avl_tree_garzon_solaque.html)
-
-**Opción 2 — De forma local:**
+De forma local:
 1. Descargar `avl_tree_garzon_solaque.html`
 2. Abrirlo en Cualquier navegador compatible con HTML
 
