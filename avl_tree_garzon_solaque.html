@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Árbol AVL Interactivo — Estudiante #14 | GARZON SOLAQUE JUAN DANIEL</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;800&display=swap');
+
+  :root {
+    --bg: #0d0f14;
+    --panel: #13161e;
+    --border: #1e2333;
+    --accent: #4ade80;
+    --accent2: #38bdf8;
+    --accent3: #f59e0b;
+    --accent4: #f87171;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --node-default: #1e3a5f;
+    --node-stroke: #38bdf8;
+    --node-search: #f59e0b;
+    --node-insert: #4ade80;
+    --node-rotate: #a78bfa;
+    --node-delete: #f87171;
+    --node-balance-bad: #ef4444;
+    --node-balance-ok: #22c55e;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  header {
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-shrink: 0;
+  }
+
+  header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--accent2);
+    letter-spacing: -0.5px;
+  }
+
+  header .meta {
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+
+  header .meta span { color: var(--accent); }
+
+  .main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* LEFT PANEL */
+  .sidebar {
+    width: 240px;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    overflow-y: auto;
+  }
+
+  .section {
+    border-bottom: 1px solid var(--border);
+    padding: 12px;
+  }
+
+  .section-title {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+
+  input[type="number"], input[type="text"] {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 8px;
+    font-family: inherit;
+    font-size: 0.8rem;
+    border-radius: 4px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input:focus { border-color: var(--accent2); }
+
+  button {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 10px;
+    font-family: inherit;
+    font-size: 0.75rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  button:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  button.primary {
+    background: #1e3a5f;
+    border-color: var(--accent2);
+    color: var(--accent2);
+  }
+
+  button.primary:hover { background: #254d7a; }
+
+  button.success {
+    background: #14532d;
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  button.danger {
+    background: #450a0a;
+    border-color: var(--accent4);
+    color: var(--accent4);
+  }
+
+  button.danger:hover { background: #6b0f0f; }
+
+  button.full { width: 100%; margin-bottom: 5px; }
+
+  .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+
+  /* SPEED SLIDER */
+  .slider-row { display: flex; flex-direction: column; gap: 4px; }
+  .slider-label { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--muted); }
+
+  input[type="range"] {
+    width: 100%;
+    accent-color: var(--accent2);
+    cursor: pointer;
+  }
+
+  /* STATS */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .stat-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 6px 8px;
+    text-align: center;
+  }
+
+  .stat-val {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--accent2);
+  }
+
+  .stat-lbl {
+    font-size: 0.6rem;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  /* CENTER CANVAS */
+  .canvas-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  canvas {
+    flex: 1;
+    display: block;
+    cursor: crosshair;
+  }
+
+  /* RIGHT LOG */
+  .log-panel {
+    width: 220px;
+    background: var(--panel);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+
+  .log-header {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  #logList {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .log-entry {
+    font-size: 0.65rem;
+    padding: 4px 6px;
+    border-radius: 3px;
+    border-left: 2px solid var(--border);
+    background: var(--bg);
+    word-break: break-word;
+    animation: fadeIn 0.2s ease;
+  }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateX(8px); } to { opacity: 1; } }
+
+  .log-insert { border-color: var(--accent); color: var(--accent); }
+  .log-delete { border-color: var(--accent4); color: var(--accent4); }
+  .log-search { border-color: var(--accent3); color: var(--accent3); }
+  .log-rotate { border-color: #a78bfa; color: #a78bfa; }
+  .log-info   { border-color: var(--muted); color: var(--text); }
+  .log-balance{ border-color: var(--accent2); color: var(--accent2); }
+
+  .anim-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: var(--panel);
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+    font-size: 0.7rem;
+  }
+
+  #animStatus {
+    flex: 1;
+    color: var(--accent3);
+    font-size: 0.65rem;
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🌲 Árbol AVL Interactivo</h1>
+  <div class="meta">Estudiante #14 — <span>GARZON SOLAQUE JUAN DANIEL</span> — CC: 20252578019</div>
+  <div style="margin-left:auto;font-size:0.7rem;color:var(--muted)">Estructuras de Datos · 2026-I</div>
+</header>
+
+<div class="main">
+  <!-- LEFT SIDEBAR -->
+  <div class="sidebar">
+
+    <div class="section">
+      <div class="section-title">Insertar</div>
+      <div class="input-row">
+        <input type="number" id="insertVal" placeholder="Valor" min="-999" max="999">
+        <button class="primary" onclick="insertAnimated()">+</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Eliminar</div>
+      <div class="input-row">
+        <input type="number" id="deleteVal" placeholder="Valor" min="-999" max="999">
+        <button class="danger" onclick="deleteAnimated()">−</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Buscar</div>
+      <div class="input-row">
+        <input type="number" id="searchVal" placeholder="Valor" min="-999" max="999">
+        <button class="primary" onclick="searchAnimated()">🔍</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Acciones</div>
+      <button class="full success" onclick="loadExample()">📂 Cargar Secuencia #14</button>
+      <div style="font-size:0.6rem;color:var(--muted);margin-bottom:6px;padding:0 2px">44,24,74,14,34,64,84,32,33,31,30,35</div>
+      <div class="btn-grid">
+        <button onclick="generateRandom()">🎲 Aleatorio</button>
+        <button class="danger" onclick="resetTree()">🔄 Reiniciar</button>
+      </div>
+      <div style="margin-top:6px" class="input-row">
+        <input type="number" id="randN" value="10" min="5" max="20" style="width:60px">
+        <span style="font-size:0.7rem;color:var(--muted);align-self:center">N nodos</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Animación</div>
+      <div class="slider-row">
+        <div class="slider-label"><span>Velocidad</span><span id="speedLabel">1×</span></div>
+        <input type="range" id="speedSlider" min="0.25" max="4" step="0.25" value="1" oninput="updateSpeed()">
+      </div>
+      <div style="margin-top:8px" class="btn-grid">
+        <button id="toggleBtn" onclick="toggleAuto()">⏸ Auto</button>
+        <button onclick="stepForward()">⏭ Paso</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Exportar</div>
+      <button class="full" onclick="exportPNG()">📷 PNG</button>
+      <button class="full" onclick="exportPDF()">📄 PDF con stats</button>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Estadísticas</div>
+      <div class="stats-grid">
+        <div class="stat-box"><div class="stat-val" id="statNodes">0</div><div class="stat-lbl">Nodos</div></div>
+        <div class="stat-box"><div class="stat-val" id="statHeight">0</div><div class="stat-lbl">Altura</div></div>
+        <div class="stat-box"><div class="stat-val" id="statRots">0</div><div class="stat-lbl">Rots</div></div>
+        <div class="stat-box"><div class="stat-val" id="statOps">0</div><div class="stat-lbl">Ops</div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CANVAS -->
+  <div class="canvas-area">
+    <canvas id="treeCanvas"></canvas>
+    <div class="anim-bar">
+      <div id="animStatus">Listo. Inserta un valor o carga la secuencia.</div>
+      <button onclick="exportPNG()">PNG</button>
+      <button onclick="exportPDF()">PDF</button>
+    </div>
+  </div>
+
+  <!-- LOG -->
+  <div class="log-panel">
+    <div class="log-header">
+      <span>Log de Operaciones</span>
+      <button onclick="clearLog()" style="font-size:0.6rem;padding:2px 6px">Limpiar</button>
+    </div>
+    <div id="logList"></div>
+  </div>
+</div>
+
+<script>
+// =============================================
+//  AVL NODE & TREE
+// =============================================
+class AVLNode {
+  constructor(val) {
+    this.val = val;
+    this.left = null;
+    this.right = null;
+    this.height = 1;
+    // visual
+    this.x = 0; this.y = 0;
+    this.color = null;
+    this.alpha = 1;
+  }
+}
+
+class AVLTree {
+  constructor() {
+    this.root = null;
+    this.rotations = 0;
+    this.ops = 0;
+    this.animSteps = []; // queue of animation steps
+  }
+
+  height(n) { return n ? n.height : 0; }
+  bf(n) { return n ? this.height(n.left) - this.height(n.right) : 0; }
+
+  updateHeight(n) {
+    if (n) n.height = 1 + Math.max(this.height(n.left), this.height(n.right));
+  }
+
+  rotateRight(y) {
+    const x = y.left, T2 = x.right;
+    x.right = y; y.left = T2;
+    this.updateHeight(y); this.updateHeight(x);
+    this.rotations++;
+    this.animSteps.push({ type: 'rotate', msg: `Rotación derecha sobre ${y.val}`, node: y.val });
+    return x;
+  }
+
+  rotateLeft(x) {
+    const y = x.right, T2 = y.left;
+    y.left = x; x.right = T2;
+    this.updateHeight(x); this.updateHeight(y);
+    this.rotations++;
+    this.animSteps.push({ type: 'rotate', msg: `Rotación izquierda sobre ${x.val}`, node: x.val });
+    return y;
+  }
+
+  insert(node, val) {
+    if (!node) {
+      this.animSteps.push({ type: 'insert', msg: `Insertado: ${val}`, node: val });
+      return new AVLNode(val);
+    }
+    if (val < node.val) {
+      this.animSteps.push({ type: 'traverse', msg: `Ir izquierda desde ${node.val}`, node: node.val });
+      node.left = this.insert(node.left, val);
+    } else if (val > node.val) {
+      this.animSteps.push({ type: 'traverse', msg: `Ir derecha desde ${node.val}`, node: node.val });
+      node.right = this.insert(node.right, val);
+    } else {
+      this.animSteps.push({ type: 'info', msg: `Valor ${val} ya existe`, node: val });
+      return node;
+    }
+    this.updateHeight(node);
+    const bf = this.bf(node);
+
+    // LL
+    if (bf > 1 && val < node.left.val) {
+      this.animSteps.push({ type: 'balance', msg: `Desbalance LL en ${node.val} (FE=${bf})`, node: node.val });
+      return this.rotateRight(node);
+    }
+    // RR
+    if (bf < -1 && val > node.right.val) {
+      this.animSteps.push({ type: 'balance', msg: `Desbalance RR en ${node.val} (FE=${bf})`, node: node.val });
+      return this.rotateLeft(node);
+    }
+    // LR
+    if (bf > 1 && val > node.left.val) {
+      this.animSteps.push({ type: 'balance', msg: `Desbalance LR en ${node.val} (FE=${bf})`, node: node.val });
+      node.left = this.rotateLeft(node.left);
+      return this.rotateRight(node);
+    }
+    // RL
+    if (bf < -1 && val < node.right.val) {
+      this.animSteps.push({ type: 'balance', msg: `Desbalance RL en ${node.val} (FE=${bf})`, node: node.val });
+      node.right = this.rotateRight(node.right);
+      return this.rotateLeft(node);
+    }
+    return node;
+  }
+
+  insertVal(val) {
+    this.ops++;
+    this.animSteps = [];
+    this.root = this.insert(this.root, val);
+    return this.animSteps;
+  }
+
+  minNode(n) { while (n.left) n = n.left; return n; }
+
+  delete(node, val) {
+    if (!node) return null;
+    if (val < node.val) {
+      this.animSteps.push({ type: 'traverse', msg: `Ir izquierda desde ${node.val}`, node: node.val });
+      node.left = this.delete(node.left, val);
+    } else if (val > node.val) {
+      this.animSteps.push({ type: 'traverse', msg: `Ir derecha desde ${node.val}`, node: node.val });
+      node.right = this.delete(node.right, val);
+    } else {
+      this.animSteps.push({ type: 'delete', msg: `Eliminando ${val}`, node: val });
+      if (!node.left || !node.right) {
+        node = node.left || node.right;
+      } else {
+        const succ = this.minNode(node.right);
+        node.val = succ.val;
+        node.right = this.delete(node.right, succ.val);
+      }
+    }
+    if (!node) return null;
+    this.updateHeight(node);
+    const bf = this.bf(node);
+
+    if (bf > 1 && this.bf(node.left) >= 0) {
+      this.animSteps.push({ type: 'balance', msg: `Rebalanceo LL en ${node.val}`, node: node.val });
+      return this.rotateRight(node);
+    }
+    if (bf > 1 && this.bf(node.left) < 0) {
+      this.animSteps.push({ type: 'balance', msg: `Rebalanceo LR en ${node.val}`, node: node.val });
+      node.left = this.rotateLeft(node.left);
+      return this.rotateRight(node);
+    }
+    if (bf < -1 && this.bf(node.right) <= 0) {
+      this.animSteps.push({ type: 'balance', msg: `Rebalanceo RR en ${node.val}`, node: node.val });
+      return this.rotateLeft(node);
+    }
+    if (bf < -1 && this.bf(node.right) > 0) {
+      this.animSteps.push({ type: 'balance', msg: `Rebalanceo RL en ${node.val}`, node: node.val });
+      node.right = this.rotateRight(node.right);
+      return this.rotateLeft(node);
+    }
+    return node;
+  }
+
+  deleteVal(val) {
+    this.ops++;
+    this.animSteps = [];
+    this.root = this.delete(this.root, val);
+    return this.animSteps;
+  }
+
+  search(node, val, path = []) {
+    if (!node) { path.push({ val: null, found: false }); return path; }
+    path.push({ val: node.val, found: node.val === val });
+    if (val === node.val) return path;
+    if (val < node.val) return this.search(node.left, val, path);
+    return this.search(node.right, val, path);
+  }
+
+  searchVal(val) {
+    this.ops++;
+    return this.search(this.root, val);
+  }
+
+  nodeCount(n) { return n ? 1 + this.nodeCount(n.left) + this.nodeCount(n.right) : 0; }
+  getHeight() { return this.height(this.root); }
+  getCount() { return this.nodeCount(this.root); }
+}
+
+// =============================================
+//  RENDERER
+// =============================================
+const canvas = document.getElementById('treeCanvas');
+const ctx = canvas.getContext('2d');
+
+let tree = new AVLTree();
+let highlightMap = {}; // val -> {color, ttl}
+let animSpeed = 1;
+let autoMode = true;
+let pendingSteps = [];
+let animating = false;
+let stepResolve = null;
+
+const NODE_R = 22;
+const LEVEL_GAP = 70;
+const H_PAD = 30;
+
+function resizeCanvas() {
+  canvas.width = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+  drawTree();
+}
+
+window.addEventListener('resize', resizeCanvas);
+setTimeout(resizeCanvas, 50);
+
+// Compute positions using inorder offset
+function computePositions(node, depth, counters) {
+  if (!node) return;
+  computePositions(node.left, depth + 1, counters);
+  node._x = counters.idx * (NODE_R * 2 + 14) + H_PAD + NODE_R;
+  node._y = depth * LEVEL_GAP + 50;
+  counters.idx++;
+  computePositions(node.right, depth + 1, counters);
+}
+
+function drawTree() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (!tree.root) {
+    ctx.fillStyle = '#1e2333';
+    ctx.font = '14px JetBrains Mono';
+    ctx.textAlign = 'center';
+    ctx.fillText('Árbol vacío — inserta valores para comenzar', canvas.width / 2, canvas.height / 2);
+    return;
+  }
+
+  const counters = { idx: 0 };
+  computePositions(tree.root, 0, counters);
+
+  // Auto-scale
+  const allNodes = [];
+  collectNodes(tree.root, allNodes);
+  const maxX = Math.max(...allNodes.map(n => n._x)) + NODE_R + H_PAD;
+  const maxY = Math.max(...allNodes.map(n => n._y)) + NODE_R + 20;
+  let scaleX = 1, scaleY = 1;
+  if (maxX > canvas.width) scaleX = canvas.width / maxX;
+  if (maxY > canvas.height - 30) scaleY = (canvas.height - 30) / maxY;
+  const scale = Math.min(scaleX, scaleY, 1);
+
+  ctx.save();
+  const offsetX = (canvas.width - maxX * scale) / 2;
+  ctx.translate(offsetX, 10);
+  ctx.scale(scale, scale);
+
+  drawEdges(tree.root);
+  drawNodes(tree.root);
+  ctx.restore();
+
+  updateStats();
+}
+
+function collectNodes(n, arr) { if (!n) return; arr.push(n); collectNodes(n.left, arr); collectNodes(n.right, arr); }
+
+function drawEdges(node) {
+  if (!node) return;
+  if (node.left) {
+    ctx.beginPath();
+    ctx.moveTo(node._x, node._y);
+    ctx.lineTo(node.left._x, node.left._y);
+    ctx.strokeStyle = '#1e2333';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    drawEdges(node.left);
+  }
+  if (node.right) {
+    ctx.beginPath();
+    ctx.moveTo(node._x, node._y);
+    ctx.lineTo(node.right._x, node.right._y);
+    ctx.strokeStyle = '#1e2333';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    drawEdges(node.right);
+  }
+}
+
+function drawNodes(node) {
+  if (!node) return;
+
+  const hl = highlightMap[node.val];
+  let fill = '#1e3a5f';
+  let stroke = '#38bdf8';
+  let textColor = '#e2e8f0';
+
+  if (hl) {
+    if (hl.color === 'insert')  { fill = '#14532d'; stroke = '#4ade80'; }
+    if (hl.color === 'search')  { fill = '#451a03'; stroke = '#f59e0b'; textColor = '#fbbf24'; }
+    if (hl.color === 'found')   { fill = '#7c2d12'; stroke = '#fb923c'; textColor = '#fed7aa'; }
+    if (hl.color === 'notfound'){ fill = '#450a0a'; stroke = '#f87171'; }
+    if (hl.color === 'rotate')  { fill = '#2e1065'; stroke = '#a78bfa'; }
+    if (hl.color === 'delete')  { fill = '#450a0a'; stroke = '#f87171'; }
+    if (hl.color === 'traverse'){ fill = '#0c4a6e'; stroke = '#38bdf8'; }
+    if (hl.color === 'balance') { fill = '#1e1b4b'; stroke = '#818cf8'; }
+  }
+
+  const bf = tree.bf(node);
+  const bfColor = Math.abs(bf) > 1 ? '#ef4444' : (Math.abs(bf) === 1 ? '#f59e0b' : '#4ade80');
+
+  // Shadow
+  ctx.shadowColor = stroke + '44';
+  ctx.shadowBlur = hl ? 14 : 4;
+
+  // Circle
+  ctx.beginPath();
+  ctx.arc(node._x, node._y, NODE_R, 0, Math.PI * 2);
+  ctx.fillStyle = fill;
+  ctx.fill();
+  ctx.strokeStyle = stroke;
+  ctx.lineWidth = hl ? 2.5 : 1.5;
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Value
+  ctx.fillStyle = textColor;
+  ctx.font = 'bold 12px JetBrains Mono';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(node.val, node._x, node._y);
+
+  // Height label (top-left of node)
+  ctx.font = '8px JetBrains Mono';
+  ctx.fillStyle = '#94a3b8';
+  ctx.textAlign = 'right';
+  ctx.fillText('h:' + node.height, node._x - 2, node._y - NODE_R - 3);
+
+  // FE label (top-right of node)
+  ctx.fillStyle = bfColor;
+  ctx.textAlign = 'left';
+  ctx.fillText('FE:' + bf, node._x + 2, node._y - NODE_R - 3);
+
+  drawNodes(node.left);
+  drawNodes(node.right);
+}
+
+// =============================================
+//  LOG
+// =============================================
+let logCount = 0;
+function log(msg, type = 'info') {
+  logCount++;
+  const list = document.getElementById('logList');
+  const entry = document.createElement('div');
+  entry.className = `log-entry log-${type}`;
+  const time = new Date().toLocaleTimeString('es-CO', { hour12: false });
+  entry.textContent = `[${time}] ${msg}`;
+  list.prepend(entry);
+  if (list.children.length > 200) list.removeChild(list.lastChild);
+}
+
+function clearLog() { document.getElementById('logList').innerHTML = ''; logCount = 0; }
+
+// =============================================
+//  HIGHLIGHT & ANIMATION HELPERS
+// =============================================
+function setHighlight(val, color, ttl = 1200) {
+  highlightMap[val] = { color, ttl };
+  drawTree();
+  return new Promise(res => setTimeout(() => {
+    delete highlightMap[val];
+    drawTree();
+    res();
+  }, ttl / animSpeed));
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms / animSpeed)); }
+
+// =============================================
+//  OPERATIONS
+// =============================================
+async function insertAnimated() {
+  const val = parseInt(document.getElementById('insertVal').value);
+  if (isNaN(val)) return;
+  document.getElementById('insertVal').value = '';
+  if (animating) { pendingSteps.push(() => insertAnimated2(val)); return; }
+  await insertAnimated2(val);
+}
+
+async function insertAnimated2(val) {
+  animating = true;
+  setStatus(`Insertando ${val}...`);
+  const steps = tree.insertVal(val);
+  for (const step of steps) {
+    if (step.type === 'traverse') {
+      await setHighlight(step.node, 'traverse', 400);
+    } else if (step.type === 'insert') {
+      log(step.msg, 'insert');
+      await setHighlight(step.node, 'insert', 800);
+    } else if (step.type === 'rotate') {
+      log(step.msg, 'rotate');
+      await setHighlight(step.node, 'rotate', 700);
+    } else if (step.type === 'balance') {
+      log(step.msg, 'balance');
+      await setHighlight(step.node, 'balance', 500);
+    } else {
+      log(step.msg, 'info');
+    }
+    if (!autoMode) { await waitForStep(); }
+  }
+  drawTree();
+  setStatus(`✓ ${val} insertado. Árbol con ${tree.getCount()} nodos, altura ${tree.getHeight()}.`);
+  animating = false;
+  runPending();
+}
+
+async function deleteAnimated() {
+  const val = parseInt(document.getElementById('deleteVal').value);
+  if (isNaN(val)) return;
+  document.getElementById('deleteVal').value = '';
+  animating = true;
+  setStatus(`Eliminando ${val}...`);
+  log(`Eliminar: ${val}`, 'delete');
+  await setHighlight(val, 'delete', 600);
+  const steps = tree.deleteVal(val);
+  for (const step of steps) {
+    if (step.type === 'traverse') await setHighlight(step.node, 'traverse', 350);
+    else if (step.type === 'rotate') { log(step.msg, 'rotate'); await setHighlight(step.node, 'rotate', 600); }
+    else if (step.type === 'balance') { log(step.msg, 'balance'); await setHighlight(step.node, 'balance', 500); }
+    else if (step.type === 'delete') { log(step.msg, 'delete'); }
+    if (!autoMode) await waitForStep();
+  }
+  drawTree();
+  setStatus(`✓ ${val} eliminado.`);
+  animating = false;
+  runPending();
+}
+
+async function searchAnimated() {
+  const val = parseInt(document.getElementById('searchVal').value);
+  if (isNaN(val)) return;
+  document.getElementById('searchVal').value = '';
+  animating = true;
+  setStatus(`Buscando ${val}...`);
+  log(`Buscar: ${val}`, 'search');
+  const path = tree.searchVal(val);
+  for (const step of path) {
+    if (step.val === null) {
+      setStatus(`✗ ${val} no encontrado.`);
+      log(`${val} no encontrado`, 'search');
+      break;
+    }
+    if (step.found) {
+      await setHighlight(step.val, 'found', 1200);
+      log(`✓ ${val} encontrado! Camino: ${path.filter(s=>s.val!==null).map(s=>s.val).join(' → ')}`, 'search');
+      setStatus(`✓ ${val} encontrado.`);
+    } else {
+      await setHighlight(step.val, 'search', 450);
+    }
+    if (!autoMode) await waitForStep();
+  }
+  drawTree();
+  animating = false;
+  runPending();
+}
+
+async function loadExample() {
+  resetTree(true);
+  const seq = [44, 24, 74, 14, 34, 64, 84, 32, 33, 31, 30, 35];
+  log('Cargando secuencia personalizada #14: ' + seq.join(', '), 'info');
+  setStatus('Cargando secuencia #14...');
+  for (const v of seq) {
+    await insertAnimated2(v);
+    await sleep(100);
+  }
+  log('Secuencia #14 cargada completa.', 'insert');
+  setStatus('✓ Secuencia #14 cargada. ' + seq.length + ' nodos.');
+}
+
+async function generateRandom() {
+  const n = Math.min(20, Math.max(5, parseInt(document.getElementById('randN').value) || 10));
+  resetTree(true);
+  const vals = new Set();
+  while (vals.size < n) vals.add(Math.floor(Math.random() * 99) + 1);
+  const arr = [...vals];
+  log('Generando aleatorio: ' + arr.join(', '), 'info');
+  for (const v of arr) {
+    await insertAnimated2(v);
+    await sleep(80);
+  }
+}
+
+function resetTree(silent = false) {
+  tree = new AVLTree();
+  highlightMap = {};
+  pendingSteps = [];
+  animating = false;
+  drawTree();
+  if (!silent) {
+    log('Árbol reiniciado.', 'info');
+    setStatus('Árbol reiniciado.');
+  }
+}
+
+// =============================================
+//  STEP-BY-STEP CONTROL
+// =============================================
+function waitForStep() {
+  return new Promise(res => { stepResolve = res; });
+}
+
+function stepForward() {
+  if (stepResolve) { const r = stepResolve; stepResolve = null; r(); }
+}
+
+function toggleAuto() {
+  autoMode = !autoMode;
+  const btn = document.getElementById('toggleBtn');
+  btn.textContent = autoMode ? '⏸ Auto' : '▶ Manual';
+  if (autoMode && stepResolve) stepForward();
+}
+
+function runPending() {
+  if (pendingSteps.length) pendingSteps.shift()();
+}
+
+// =============================================
+//  SPEED / STATUS
+// =============================================
+function updateSpeed() {
+  animSpeed = parseFloat(document.getElementById('speedSlider').value);
+  document.getElementById('speedLabel').textContent = animSpeed + '×';
+}
+
+function setStatus(msg) {
+  document.getElementById('animStatus').textContent = msg;
+}
+
+// =============================================
+//  STATS
+// =============================================
+function updateStats() {
+  document.getElementById('statNodes').textContent = tree.getCount();
+  document.getElementById('statHeight').textContent = tree.getHeight();
+  document.getElementById('statRots').textContent = tree.rotations;
+  document.getElementById('statOps').textContent = tree.ops;
+}
+
+// =============================================
+//  EXPORT PNG
+// =============================================
+function exportPNG() {
+  // Render clean version on offscreen canvas
+  const oc = document.createElement('canvas');
+  oc.width = canvas.width; oc.height = canvas.height;
+  const octx = oc.getContext('2d');
+  octx.fillStyle = '#0d0f14';
+  octx.fillRect(0, 0, oc.width, oc.height);
+
+  // Header
+  octx.fillStyle = '#e2e8f0';
+  octx.font = 'bold 14px monospace';
+  octx.fillText('Árbol AVL — Estudiante #14 — GARZON SOLAQUE JUAN DANIEL — ' + new Date().toLocaleString('es-CO'), 10, 20);
+
+  // Copy tree drawing
+  octx.drawImage(canvas, 0, 30);
+
+  // Stats footer
+  octx.fillStyle = '#64748b';
+  octx.font = '11px monospace';
+  octx.fillText(`Nodos: ${tree.getCount()} | Altura: ${tree.getHeight()} | Rotaciones: ${tree.rotations} | Ops: ${tree.ops}`, 10, oc.height - 8);
+
+  const link = document.createElement('a');
+  link.download = 'avl_tree_garzon_solaque.png';
+  link.href = oc.toDataURL('image/png');
+  link.click();
+  log('Exportado PNG.', 'info');
+}
+
+// =============================================
+//  EXPORT PDF (using jsPDF via CDN)
+// =============================================
+async function exportPDF() {
+  setStatus('Generando PDF...');
+  log('Exportando PDF con estadísticas...', 'info');
+
+  // Load jsPDF dynamically
+  if (!window.jspdf) {
+    await new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+      s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+  // Title
+  doc.setFillColor(13, 15, 20);
+  doc.rect(0, 0, 297, 210, 'F');
+  doc.setTextColor(56, 189, 248);
+  doc.setFontSize(16);
+  doc.setFont('courier', 'bold');
+  doc.text('ÁRBOL AVL INTERACTIVO — EXAMEN FINAL', 148, 14, { align: 'center' });
+
+  doc.setTextColor(100, 116, 139);
+  doc.setFontSize(9);
+  doc.text('Estructuras de Datos | Estudiante #14 | GARZON SOLAQUE JUAN DANIEL | CC: 20252578019', 148, 20, { align: 'center' });
+  doc.text('Universidad Distrital Francisco José de Caldas | ' + new Date().toLocaleString('es-CO'), 148, 25, { align: 'center' });
+
+  // Tree image
+  const imgData = canvas.toDataURL('image/png');
+  const canvasRatio = canvas.height / canvas.width;
+  const imgW = 190, imgH = imgW * canvasRatio;
+  const imgX = (297 - imgW) / 2;
+  doc.addImage(imgData, 'PNG', imgX, 30, imgW, Math.min(imgH, 130));
+
+  // Stats table
+  const statsY = 170;
+  doc.setFontSize(10);
+  doc.setTextColor(74, 222, 128);
+  doc.text('ESTADÍSTICAS DEL ÁRBOL', 20, statsY);
+
+  const stats = [
+    ['Nodos totales', tree.getCount()],
+    ['Altura del árbol', tree.getHeight()],
+    ['Rotaciones totales', tree.rotations],
+    ['Operaciones totales', tree.ops],
+    ['Factor de equilibrio raíz', tree.root ? tree.bf(tree.root) : 'N/A'],
+  ];
+
+  doc.setFontSize(8);
+  doc.setTextColor(226, 232, 240);
+  stats.forEach(([k, v], i) => {
+    const x = 20 + (i % 3) * 90;
+    const y = statsY + 8 + Math.floor(i / 3) * 10;
+    doc.setTextColor(100, 116, 139); doc.text(k + ':', x, y);
+    doc.setTextColor(56, 189, 248); doc.text(String(v), x + 50, y);
+  });
+
+  // Log excerpt
+  doc.setFontSize(7);
+  doc.setTextColor(100, 116, 139);
+  doc.text('ÚLTIMAS OPERACIONES:', 20, statsY + 28);
+  const logEntries = [...document.getElementById('logList').children].slice(0, 12);
+  logEntries.forEach((e, i) => {
+    const txt = e.textContent.slice(0, 100);
+    doc.setTextColor(148, 163, 184);
+    doc.text(txt, 20, statsY + 34 + i * 4);
+  });
+
+  doc.save('Stats-arbol.pdf');
+  setStatus('✓ PDF exportado: Stats-arbol.pdf');
+}
+
+// =============================================
+//  KEYBOARD
+// =============================================
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const iv = document.getElementById('insertVal');
+    if (document.activeElement === iv) insertAnimated();
+  }
+  if (e.key === ' ' && !['INPUT'].includes(document.activeElement.tagName)) {
+    e.preventDefault();
+    stepForward();
+  }
+});
+
+// Init
+drawTree();
+log('Aplicación iniciada. Secuencia asignada: 44,24,74,14,34,64,84,32,33,31,30,35', 'info');
+updateStats();
+</script>
+</body>
+</html>
